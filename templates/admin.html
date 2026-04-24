@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Admin Panel — Email Tool{% endblock %}
+{% block content %}
+<div class="page-title">Admin Panel</div>
+<div class="page-subtitle">Full system overview</div>
+
+<!-- System Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number text-primary">{{ total_leads }}</div>
+            <div class="stat-label">Total Leads</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number" style="color:#22c55e">{{ total_sent }}</div>
+            <div class="stat-label">Emails Sent</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number" style="color:#ef4444">{{ total_failed }}</div>
+            <div class="stat-label">Failed</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number text-primary">{{ total_campaigns }}</div>
+            <div class="stat-label">Campaigns</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number" style="color:#6366f1">{{ running }}</div>
+            <div class="stat-label">Running</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number" style="color:#22c55e">{{ completed }}</div>
+            <div class="stat-label">Completed</div>
+        </div>
+    </div>
+</div>
+
+<!-- Accounts Overview -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-envelope-at me-2"></i>Email Accounts ({{ total_accounts }} total, {{ active_accounts }} active)</span>
+        <a href="/accounts/new" class="btn btn-sm btn-primary">+ Add</a>
+    </div>
+    <div class="card-body p-0">
+        {% if all_accounts %}
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Name</th><th>Email</th><th>Sent Today</th><th>Daily Limit</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for acc in all_accounts %}
+            <tr>
+                <td>{{ acc.name }}</td>
+                <td>{{ acc.email }}</td>
+                <td>
+                    <div class="progress" style="height:4px;width:80px;margin-bottom:2px">
+                        <div class="progress-bar" style="width:{{ (acc.sent_today/acc.daily_limit*100)|int if acc.daily_limit>0 else 0 }}%"></div>
+                    </div>
+                    <small style="color:#64748b;font-size:11px">{{ acc.sent_today }}/{{ acc.daily_limit }}</small>
+                </td>
+                <td>{{ acc.daily_limit }}</td>
+                <td>
+                    {% if acc.is_active %}
+                    <span class="badge badge-sent px-2 py-1 rounded-pill">Active</span>
+                    {% else %}
+                    <span class="badge badge-failed px-2 py-1 rounded-pill">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/accounts/{{ acc.id }}/toggle" class="btn btn-sm btn-outline-warning">Toggle</a>
+                    <a href="/accounts/{{ acc.id }}/delete" class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('Delete?')">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-3" style="color:#64748b">No accounts added yet</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- All Campaigns -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-megaphone me-2"></i>All Campaigns</span>
+        <a href="/campaigns/new" class="btn btn-sm btn-primary">+ New</a>
+    </div>
+    <div class="card-body p-0">
+        {% if all_campaigns %}
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Name</th><th>Status</th><th>Sent</th><th>Failed</th><th>Total</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for c in all_campaigns %}
+            <tr>
+                <td><a href="/campaigns/{{ c.id }}" style="color:#6366f1">{{ c.name }}</a></td>
+                <td><span class="badge badge-{{ c.status }} px-2 py-1 rounded-pill">{{ c.status }}</span></td>
+                <td style="color:#22c55e">{{ c.sent_count }}</td>
+                <td style="color:#ef4444">{{ c.failed_count }}</td>
+                <td>{{ c.total_leads }}</td>
+                <td style="color:#64748b;font-size:12px">{{ c.created_at.strftime('%d %b %Y') }}</td>
+                <td>
+                    {% if c.status == 'running' %}
+                    <a href="/campaigns/{{ c.id }}/pause" class="btn btn-sm btn-warning">Pause</a>
+                    {% else %}
+                    <a href="/campaigns/{{ c.id }}/start" class="btn btn-sm btn-primary">Start</a>
+                    {% endif %}
+                    <a href="/campaigns/{{ c.id }}/delete" class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('Delete campaign?')">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-3" style="color:#64748b">No campaigns yet</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Email Tool{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #0f1117; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { width: 240px; min-height: 100vh; background: #1a1d27; border-right: 1px solid #2d3148; position: fixed; top: 0; left: 0; z-index: 100; }
+        .sidebar-brand { padding: 20px; border-bottom: 1px solid #2d3148; }
+        .sidebar-brand h5 { color: #6366f1; font-weight: 700; margin: 0; letter-spacing: 1px; }
+        .sidebar-brand small { color: #64748b; font-size: 11px; }
+        .nav-link { color: #94a3b8; padding: 10px 20px; display: flex; align-items: center; gap: 10px; transition: all 0.2s; border-left: 3px solid transparent; }
+        .nav-link:hover, .nav-link.active { color: #6366f1; background: rgba(99,102,241,0.08); border-left-color: #6366f1; }
+        .nav-link i { font-size: 16px; width: 20px; }
+        .main-content { margin-left: 240px; padding: 24px; min-height: 100vh; }
+        .card { background: #1a1d27; border: 1px solid #2d3148; border-radius: 12px; }
+        .card-header { background: #1e2235; border-bottom: 1px solid #2d3148; padding: 14px 20px; }
+        .stat-card { background: #1a1d27; border: 1px solid #2d3148; border-radius: 12px; padding: 20px; transition: all 0.2s; }
+        .stat-card:hover { border-color: #6366f1; transform: translateY(-2px); }
+        .stat-number { font-size: 32px; font-weight: 700; }
+        .stat-label { color: #64748b; font-size: 13px; margin-top: 4px; }
+        .btn-primary { background: #6366f1; border-color: #6366f1; }
+        .btn-primary:hover { background: #5558e8; border-color: #5558e8; }
+        .table { color: #e2e8f0; }
+        .table thead th { color: #64748b; font-size: 12px; text-transform: uppercase; border-color: #2d3148; }
+        .table td { border-color: #2d3148; vertical-align: middle; }
+        .table tbody tr:hover { background: rgba(99,102,241,0.05); }
+        .badge-sent { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .badge-pending { background: rgba(234,179,8,0.15); color: #eab308; }
+        .badge-failed { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-running { background: rgba(99,102,241,0.15); color: #6366f1; }
+        .badge-draft { background: rgba(100,116,139,0.15); color: #64748b; }
+        .badge-completed { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .badge-paused { background: rgba(234,179,8,0.15); color: #eab308; }
+        .form-control, .form-select { background: #0f1117; border: 1px solid #2d3148; color: #e2e8f0; }
+        .form-control:focus, .form-select:focus { background: #0f1117; border-color: #6366f1; color: #e2e8f0; box-shadow: 0 0 0 0.2rem rgba(99,102,241,0.25); }
+        .form-label { color: #94a3b8; font-size: 13px; font-weight: 500; }
+        .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .page-subtitle { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+        .alert-success { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: #22c55e; }
+        .alert-danger, .alert-error { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #ef4444; }
+        .alert-warning { background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.3); color: #eab308; }
+        .progress { background: #2d3148; height: 6px; border-radius: 3px; }
+        .progress-bar { background: #6366f1; }
+        textarea.form-control { min-height: 150px; font-family: monospace; }
+        .nav-section { padding: 12px 20px 6px; font-size: 10px; text-transform: uppercase; color: #475569; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h5><i class="bi bi-send-fill me-2"></i>EMAIL TOOL</h5>
+            <small>Cold Email Automation</small>
+        </div>
+        <nav class="mt-2">
+            <div class="nav-section">Main</div>
+            <a href="/dashboard" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="/campaigns" class="nav-link {% if '/campaigns' in request.path %}active{% endif %}">
+                <i class="bi bi-megaphone"></i> Campaigns
+            </a>
+            <a href="/leads" class="nav-link {% if '/leads' in request.path %}active{% endif %}">
+                <i class="bi bi-people"></i> Leads
+            </a>
+            <a href="/analytics" class="nav-link {% if '/analytics' in request.path %}active{% endif %}">
+                <i class="bi bi-bar-chart"></i> Analytics
+            </a>
+            <a href="/inbox" class="nav-link {% if '/inbox' in request.path %}active{% endif %}">
+                <i class="bi bi-inbox"></i> Inbox
+                <span id="inbox-badge" style="display:none;background:#ef4444;color:white;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:auto"></span>
+            </a>
+            <div class="nav-section">Config</div>
+            <a href="/accounts" class="nav-link {% if '/accounts' in request.path %}active{% endif %}">
+                <i class="bi bi-envelope-at"></i> Email Accounts
+            </a>
+            <a href="/settings" class="nav-link {% if '/settings' in request.path %}active{% endif %}">
+                <i class="bi bi-gear"></i> Settings
+            </a>
+            <div class="nav-section">System</div>
+            <a href="/admin" class="nav-link {% if '/admin' in request.path %}active{% endif %}">
+                <i class="bi bi-shield-lock"></i> Admin Panel
+            </a>
+            <div style="padding:16px 20px;margin-top:auto;border-top:1px solid #2d3148;position:absolute;bottom:0;left:0;right:0">
+                <a href="/logout" class="nav-link" style="color:#ef4444;border-left-color:transparent">
+                    <i class="bi bi-box-arrow-left"></i> Logout
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

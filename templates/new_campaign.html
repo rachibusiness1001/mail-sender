@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block title %}New Campaign — Email Tool{% endblock %}
+{% block content %}
+<div class="page-title">New Campaign</div>
+<div class="page-subtitle">Create campaign with follow-ups, A/B testing & spintax</div>
+
+<form method="POST">
+<div class="row g-4">
+    <div class="col-md-8">
+
+        <!-- Campaign Details -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-1-circle me-2"></i>Campaign Details</div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label class="form-label">Campaign Name *</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Guest Post Outreach April" required>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Min Delay (minutes)</label>
+                        <input type="number" name="delay_min" class="form-control" value="1" min="1">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Max Delay (minutes)</label>
+                        <input type="number" name="delay_max" class="form-control" value="3" min="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- A/B Testing Toggle -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-2-circle me-2"></i>Email Content</span>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" name="ab_enabled" id="abToggle" onchange="toggleAB()">
+                    <label class="form-check-label" for="abToggle" style="color:#e2e8f0">A/B Testing</label>
+                </div>
+            </div>
+            <div class="card-body p-4">
+
+                <!-- Version A -->
+                <div style="border-left:3px solid #6366f1;padding-left:16px;margin-bottom:20px">
+                    <div class="mb-1" style="color:#6366f1;font-size:12px;font-weight:500">VERSION A</div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject *</label>
+                        <input type="text" name="subject_a" id="subject_a" class="form-control" placeholder="Guest Post Inquiry — {{company}}" required oninput="liveSpamCheck()">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Body *</label>
+                        <textarea name="body_a" id="body_a" class="form-control" rows="8" placeholder="Hi {{name}},&#10;&#10;{Hope you're doing well|I came across your website|I love your content}...&#10;&#10;Best regards," required oninput="liveSpamCheck()"></textarea>
+                    </div>
+                    <!-- Spam Score -->
+                    <div id="spam-result" style="display:none" class="mt-2 p-2 rounded" style="background:#0f1117">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small style="color:#64748b">Spam Score:</small>
+                            <span id="spam-score-badge" class="badge rounded-pill px-2">0/100</span>
+                        </div>
+                        <div id="spam-words" class="mt-1" style="font-size:11px;color:#ef4444"></div>
+                    </div>
+                    <!-- Spintax Preview -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="previewSpintax()">
+                        <i class="bi bi-eye me-1"></i>Preview Spintax
+                    </button>
+                    <div id="spintax-preview" style="display:none;margin-top:8px"></div>
+                </div>
+
+                <!-- Version B (hidden by default) -->
+                <div id="version-b" style="display:none;border-left:3px solid #22c55e;padding-left:16px;margin-bottom:20px">
+                    <div class="mb-1" style="color:#22c55e;font-size:12px;font-weight:500">VERSION B</div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject B</label>
+                        <input type="text" name="subject_b" class="form-control" placeholder="Different subject line to test">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Body B</label>
+                        <textarea name="body_b" class="form-control" rows="8" placeholder="Different email body..."></textarea>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">A/B Split — Version A gets <span id="split-val">50</span>% of leads</label>
+                        <input type="range" name="ab_split" min="10" max="90" value="50" class="form-range"
+                               oninput="document.getElementById('split-val').textContent=this.value">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Follow-up Sequences -->
+        <div id="followup-container"></div>
+        <button type="button" class="btn btn-outline-primary w-100 mb-4" onclick="addFollowup()">
+            <i class="bi bi-plus me-1"></i>Add Follow-up Email
+        </button>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check me-1"></i>Create Campaign</button>
+            <a href="/campaigns" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Spintax Guide -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-shuffle me-2"></i>Spintax Guide</div>
+            <div class="card-body p-4" style="font-size:13px;color:#94a3b8">
+                <p>Use <code>{option1|option2|option3}</code> to randomize text:</p>
+                <p style="background:#0f1117;padding:8px;border-radius:6px;font-size:12px">
+                    <code>{Hi|Hello|Hey} {{name}},<br><br>{Hope you're well|I came across your site|Love your content}...</code>
+                </p>
+                <p class="mt-2">Each email will be slightly different — avoids spam filters!</p>
+                <hr style="border-color:#2d3148">
+                <strong style="color:#e2e8f0">Tags:</strong><br>
+                <code>{{name}}</code> — Lead name<br>
+                <code>{{company}}</code> — Company<br>
+                <code>{{email}}</code> — Email
+            </div>
+        </div>
+        <!-- A/B Testing Guide -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-bar-chart me-2"></i>A/B Testing</div>
+            <div class="card-body p-4" style="font-size:13px;color:#94a3b8;line-height:2">
+                <p>Test 2 different subjects or bodies</p>
+                <p>Split leads 50/50 or custom %</p>
+                <p>See which version gets more opens & replies in Analytics</p>
+            </div>
+        </div>
+        <!-- Follow-up Guide -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-arrow-return-right me-2"></i>Follow-ups</div>
+            <div class="card-body p-4" style="font-size:13px;color:#94a3b8;line-height:2">
+                <p><i class="bi bi-1-circle me-1" style="color:#6366f1"></i>Email 1 sent immediately</p>
+                <p><i class="bi bi-2-circle me-1" style="color:#6366f1"></i>Follow-up 1 after X days</p>
+                <p><i class="bi bi-x-circle me-1" style="color:#22c55e"></i>If lead replies — stops auto</p>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+<template id="followup-template">
+    <div class="card mb-4 followup-card">
+        <div class="card-header d-flex justify-content-between align-items-center" style="border-left:3px solid #22c55e">
+            <span><i class="bi bi-arrow-return-right me-2"></i>Follow-up <span class="fu-num"></span></span>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFollowup(this)"><i class="bi bi-trash"></i></button>
+        </div>
+        <div class="card-body p-4">
+            <div class="mb-3">
+                <label class="form-label">Wait Days</label>
+                <input type="number" name="fu_days[]" class="form-control" value="2" min="1" style="max-width:120px">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Subject</label>
+                <input type="text" name="fu_subject[]" class="form-control" placeholder="Re: Following up...">
+            </div>
+            <div>
+                <label class="form-label">Body</label>
+                <textarea name="fu_body[]" class="form-control" rows="6" placeholder="Hi {{name}},&#10;&#10;Just following up..."></textarea>
+            </div>
+        </div>
+    </div>
+</template>
+
+{% block scripts %}
+<script>
+let fuCount = 0;
+function addFollowup() {
+    fuCount++;
+    const tmpl = document.getElementById('followup-template').content.cloneNode(true);
+    tmpl.querySelector('.fu-num').textContent = fuCount;
+    document.getElementById('followup-container').appendChild(tmpl);
+}
+function removeFollowup(btn) {
+    btn.closest('.followup-card').remove();
+    fuCount = Math.max(0, fuCount - 1);
+    document.querySelectorAll('.fu-num').forEach((el,i) => el.textContent = i+1);
+}
+function toggleAB() {
+    const enabled = document.getElementById('abToggle').checked;
+    document.getElementById('version-b').style.display = enabled ? 'block' : 'none';
+}
+let spamTimer;
+function liveSpamCheck() {
+    clearTimeout(spamTimer);
+    spamTimer = setTimeout(() => {
+        const subject = document.getElementById('subject_a').value;
+        const body = document.getElementById('body_a').value;
+        if(!subject && !body) return;
+        fetch('/api/spam-check', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({subject, body})
+        }).then(r=>r.json()).then(d => {
+            const el = document.getElementById('spam-result');
+            const badge = document.getElementById('spam-score-badge');
+            const words = document.getElementById('spam-words');
+            el.style.display = 'block';
+            badge.textContent = d.score + '/100';
+            badge.style.background = d.score > 50 ? '#ef4444' : d.score > 20 ? '#eab308' : '#22c55e';
+            words.textContent = d.words.length > 0 ? 'Spam words: ' + d.words.join(', ') : '';
+        });
+    }, 600);
+}
+function previewSpintax() {
+    const subject = document.getElementById('subject_a').value;
+    const body = document.getElementById('body_a').value;
+    fetch('/api/spintax-preview', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({text: subject + '\n\n' + body})
+    }).then(r=>r.json()).then(d => {
+        const el = document.getElementById('spintax-preview');
+        el.style.display = 'block';
+        el.innerHTML = d.previews.map((p,i) => `
+            <div style="background:#0f1117;border:1px solid #2d3148;border-radius:8px;padding:10px;margin-bottom:6px;font-size:12px">
+                <span style="color:#6366f1;font-size:10px">PREVIEW ${i+1}</span><br>
+                <span style="color:#e2e8f0">${p.replace(/\n/g,'<br>').substring(0,200)}...</span>
+            </div>`).join('');
+    });
+}
+</script>
+{% endblock %}
+{% endblock %}

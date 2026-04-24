@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block title %}Analytics — Email Tool{% endblock %}
+{% block content %}
+<div class="page-title">Analytics</div>
+<div class="page-subtitle">Campaign performance overview</div>
+
+<!-- Top Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number text-primary">{{ total_sent }}</div>
+            <div class="stat-label">Total Sent</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number" style="color:#6366f1">{{ total_opens }}</div>
+            <div class="stat-label">Total Opens</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number" style="color:#22c55e">{{ total_replies }}</div>
+            <div class="stat-label">Total Replies</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number" style="color:#ef4444">{{ total_failed }}</div>
+            <div class="stat-label">Failed</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number" style="color:#6366f1">{{ open_rate }}%</div>
+            <div class="stat-label">Open Rate</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card text-center">
+            <div class="stat-number" style="color:#22c55e">{{ reply_rate }}%</div>
+            <div class="stat-label">Reply Rate</div>
+        </div>
+    </div>
+</div>
+
+{% if campaign_data %}
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-bar-chart me-2"></i>Emails Sent per Campaign</div>
+            <div class="card-body p-3">
+                <div style="position:relative;height:280px">
+                    <canvas id="sentChart" role="img" aria-label="Emails sent per campaign bar chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-pie-chart me-2"></i>Open & Reply Rates</div>
+            <div class="card-body p-3">
+                <div style="position:relative;height:280px">
+                    <canvas id="ratesChart" role="img" aria-label="Open and reply rates per campaign"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Per Campaign Table -->
+<div class="card">
+    <div class="card-header"><i class="bi bi-table me-2"></i>Per Campaign Breakdown</div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr>
+                <th>Campaign</th><th>Sent</th><th>Opens</th><th>Open Rate</th><th>Replies</th><th>Reply Rate</th><th>Failed</th>
+            </tr></thead>
+            <tbody>
+            {% for c in camps %}
+            <tr onclick="window.location='/campaigns/{{ c.id }}'" style="cursor:pointer">
+                <td><strong>{{ c.name }}</strong></td>
+                <td>{{ c.sent_count }}</td>
+                <td style="color:#6366f1">{{ c.open_count }}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress flex-grow-1" style="height:4px">
+                            <div class="progress-bar" style="width:{{ (c.open_count/c.sent_count*100)|int if c.sent_count > 0 else 0 }}%;background:#6366f1"></div>
+                        </div>
+                        <small style="color:#64748b;min-width:35px">{{ (c.open_count/c.sent_count*100)|round(1) if c.sent_count > 0 else 0 }}%</small>
+                    </div>
+                </td>
+                <td style="color:#22c55e">{{ c.reply_count }}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress flex-grow-1" style="height:4px">
+                            <div class="progress-bar" style="width:{{ (c.reply_count/c.sent_count*100)|int if c.sent_count > 0 else 0 }}%;background:#22c55e"></div>
+                        </div>
+                        <small style="color:#64748b;min-width:35px">{{ (c.reply_count/c.sent_count*100)|round(1) if c.sent_count > 0 else 0 }}%</small>
+                    </div>
+                </td>
+                <td style="color:#ef4444">{{ c.failed_count }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+<div class="card">
+    <div class="text-center py-5" style="color:#64748b">
+        <i class="bi bi-bar-chart" style="font-size:48px"></i>
+        <p class="mt-3">No data yet. Create and run campaigns first!</p>
+        <a href="/campaigns/new" class="btn btn-primary">Create Campaign</a>
+    </div>
+</div>
+{% endif %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const data = {{ campaign_data | tojson }};
+if(data.length > 0) {
+    const labels = data.map(d => d.name);
+    // Sent Chart
+    new Chart(document.getElementById('sentChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Sent', data: data.map(d=>d.sent), backgroundColor: '#6366f1', borderRadius: 4 },
+                { label: 'Opens', data: data.map(d=>d.opens), backgroundColor: '#22c55e', borderRadius: 4 },
+                { label: 'Replies', data: data.map(d=>d.replies), backgroundColor: '#eab308', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#64748b' }, grid: { color: '#2d3148' } },
+                y: { ticks: { color: '#64748b' }, grid: { color: '#2d3148' } }
+            }
+        }
+    });
+    // Rates Chart
+    new Chart(document.getElementById('ratesChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Open Rate %', data: data.map(d=>d.open_rate), backgroundColor: '#6366f1', borderRadius: 4 },
+                { label: 'Reply Rate %', data: data.map(d=>d.reply_rate), backgroundColor: '#22c55e', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8' } } },
+            scales: {
+                x: { ticks: { color: '#64748b' }, grid: { color: '#2d3148' } },
+                y: { ticks: { color: '#64748b', callback: v => v + '%' }, grid: { color: '#2d3148' } }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
+{% endblock %}

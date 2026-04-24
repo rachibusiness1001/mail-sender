@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Settings — Email Tool{% endblock %}
+{% block content %}
+<div class="page-title">Settings</div>
+<div class="page-subtitle">Configure your email tool</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-gear me-2"></i>Global Settings</div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Default Min Delay (minutes)</label>
+                        <input type="number" name="delay_min" class="form-control" value="{{ delay_min }}" min="1">
+                        <small style="color:#64748b">Minimum wait between emails</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Default Max Delay (minutes)</label>
+                        <input type="number" name="delay_max" class="form-control" value="{{ delay_max }}" min="1">
+                        <small style="color:#64748b">Maximum wait between emails (random between min-max)</small>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Default Daily Limit per Account</label>
+                        <input type="number" name="daily_limit" class="form-control" value="{{ daily_limit }}" min="1">
+                        <small style="color:#64748b">Max emails per Gmail account per day</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check me-1"></i>Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-shield-check me-2"></i>Deliverability Tips</div>
+            <div class="card-body p-4" style="font-size:13px;color:#94a3b8;line-height:2">
+                <p><i class="bi bi-check-circle me-2" style="color:#22c55e"></i>Keep delay 1-3 min between emails</p>
+                <p><i class="bi bi-check-circle me-2" style="color:#22c55e"></i>Max 50-100 emails/day per Gmail</p>
+                <p><i class="bi bi-check-circle me-2" style="color:#22c55e"></i>Use multiple accounts to rotate</p>
+                <p><i class="bi bi-check-circle me-2" style="color:#22c55e"></i>Personalize subject & body</p>
+                <p><i class="bi bi-check-circle me-2" style="color:#22c55e"></i>Avoid spam trigger words</p>
+                <p><i class="bi bi-check-circle me-2" style="color:#22c55e"></i>Warm up new email accounts slowly</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

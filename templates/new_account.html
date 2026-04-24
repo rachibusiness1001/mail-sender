@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Add Email Account — MailFlow{% endblock %}
+{% block content %}
+<div class="page-title">Add Email Account</div>
+<div class="page-subtitle">Connect Gmail for sending & receiving</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+
+        <!-- Google OAuth Option - PRIMARY -->
+        <div class="card mb-4" style="border-color:rgba(99,102,241,0.5);background:rgba(99,102,241,0.05)">
+            <div class="card-body p-4 text-center">
+                <div style="font-size:40px;margin-bottom:12px">🔗</div>
+                <h5 style="font-family:'Segoe UI',sans-serif;font-weight:700;margin-bottom:8px">Connect with Google</h5>
+                <p style="color:#64748b;font-size:14px;margin-bottom:24px">
+                    No password needed! Just click below, select your Gmail account, and allow access. Done in seconds.
+                </p>
+                <a href="/accounts/google/connect" class="btn btn-primary btn-lg w-100 mb-3" style="padding:14px;font-size:15px">
+                    <svg width="20" height="20" viewBox="0 0 24 24" style="margin-right:10px;vertical-align:middle">
+                        <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                        <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Sign in with Google
+                </a>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+                    <div style="flex:1;height:1px;background:rgba(255,255,255,0.08)"></div>
+                    <span style="color:#475569;font-size:12px">Why Google OAuth?</span>
+                    <div style="flex:1;height:1px;background:rgba(255,255,255,0.08)"></div>
+                </div>
+                <div class="row g-2 text-start">
+                    <div class="col-6" style="font-size:12px;color:#64748b"><i class="bi bi-check-circle me-1" style="color:#22c55e"></i>No password sharing</div>
+                    <div class="col-6" style="font-size:12px;color:#64748b"><i class="bi bi-check-circle me-1" style="color:#22c55e"></i>Auto token refresh</div>
+                    <div class="col-6" style="font-size:12px;color:#64748b"><i class="bi bi-check-circle me-1" style="color:#22c55e"></i>Google certified</div>
+                    <div class="col-6" style="font-size:12px;color:#64748b"><i class="bi bi-check-circle me-1" style="color:#22c55e"></i>Works with 2FA</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+            <div style="flex:1;height:1px;background:rgba(255,255,255,0.06)"></div>
+            <span style="color:#475569;font-size:13px">or use App Password (manual)</span>
+            <div style="flex:1;height:1px;background:rgba(255,255,255,0.06)"></div>
+        </div>
+
+        <!-- App Password Option -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-key me-2"></i>App Password Setup</div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Account Name *</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Main Account" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address *</label>
+                        <input type="email" name="email" class="form-control" placeholder="yourname@gmail.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">App Password *</label>
+                        <input type="password" name="password" class="form-control" placeholder="16-digit Gmail App Password" required>
+                        <small style="color:#64748b">
+                            <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#6366f1">Get App Password here</a>
+                            — Enable 2FA first, then create app password
+                        </small>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-4"><label class="form-label">SMTP Host</label><input type="text" name="smtp_host" class="form-control" value="smtp.gmail.com"></div>
+                        <div class="col-4"><label class="form-label">SMTP Port</label><input type="number" name="smtp_port" class="form-control" value="587"></div>
+                        <div class="col-4"><label class="form-label">IMAP Host</label><input type="text" name="imap_host" class="form-control" value="imap.gmail.com"></div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Daily Limit</label>
+                        <input type="number" name="daily_limit" class="form-control" value="50" min="1" max="500">
+                    </div>
+                    <div class="p-3 rounded mb-4" style="background:#0f1117;border:1px solid #2d3148">
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="checkbox" name="warmup_enabled" id="warmupCheck">
+                            <label class="form-check-label" for="warmupCheck" style="color:#e2e8f0"><i class="bi bi-thermometer-half me-1" style="color:#eab308"></i>Enable Email Warmup</label>
+                        </div>
+                        <small style="color:#64748b">Gradually increases daily limit to build sender reputation</small>
+                        <div id="warmupSettings" style="display:none;margin-top:12px">
+                            <label class="form-label">Starting Daily Limit</label>
+                            <input type="number" name="warmup_limit" class="form-control" value="5" style="max-width:120px">
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-plus me-1"></i>Add with Password</button>
+                        <a href="/accounts" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.getElementById('warmupCheck').addEventListener('change', function(){
+    document.getElementById('warmupSettings').style.display = this.checked ? 'block' : 'none';
+});
+</script>
+{% endblock %}
+{% endblock %}
